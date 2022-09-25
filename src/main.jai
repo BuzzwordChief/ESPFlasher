@@ -5,7 +5,7 @@
 
 quit := false;
 
-ctrl_handler :: (type: u32) -> void {
+ctrl_handler :: (type: u32) {
     quit = true;
 }
 
@@ -40,3 +40,9 @@ println :: (format_string: string, args: .. Any, to_standard_error := false) -> 
     defer free(new_format_string);
     return print(new_format_string, args, to_standard_error = to_standard_error);
 } @PrintLike
+
+
+#run {
+    #import "Compiler";
+    set_build_options_dc(.{output_executable_name = "espflasher", output_path = "../"});
+}

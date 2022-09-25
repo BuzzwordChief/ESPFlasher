@@ -3,7 +3,7 @@
 
 // @todo(may): Move this somewhere else. 
 //             For now it resides here because we have all the necessary imports...
-HandlerRoutine :: #type (dwCtrlType: DWORD) -> void;
+HandlerRoutine :: #type (dwCtrlType: DWORD);
 SetConsoleCtrlHandler :: (Routine: HandlerRoutine, Add: BOOL) -> BOOL #foreign kernel32;
 
 com_init :: (com_port: u8) -> handle: HANDLE = null, ok := false {
@@ -28,10 +28,10 @@ com_deinit :: (com_handle: HANDLE) {
     CloseHandle(com_handle);
 }
 
-// Reads from a given com port. Returned value must be 
-// freed by the caller!
+// Reads from a given com port. 
+// Returned value must be freed by the caller.
 //
-// note: default is a 1024 byte buffer
+// Note: default is a 1024 byte buffer
 com_read :: (com_handle: HANDLE, buffer_size: DWORD = DEFAULT_READ_BUFFER_SIZE) -> data := "", ok := false {
     buffer := NewArray(buffer_size, u8, false);
     bytes_read: DWORD;
