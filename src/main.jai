@@ -22,9 +22,11 @@ main :: () {
     if !success then return;
     if !is_set.com_port {
         log_error("You must provide the com port to flash with the -com_port argument, e.g. '-com_port 3'");
-        log("Available COM-Ports:");
-        for com_query() {
-            log("  COM-Port %", it);
+
+        com_ports := com_query();
+        log("Available COM-Ports: %", ifx com_ports then "" else "NONE");
+        for com_ports {
+            log(" COM-Port %", it);
         }
         return;
     }

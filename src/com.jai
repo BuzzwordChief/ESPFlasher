@@ -3,7 +3,7 @@
 
 // @todo(may): Move this somewhere else. 
 //             For now it resides here because we have all the necessary imports...
-HandlerRoutine :: #type (dwCtrlType: DWORD);
+HandlerRoutine        :: #type (dwCtrlType: DWORD);
 SetConsoleCtrlHandler :: (Routine: HandlerRoutine, Add: BOOL) -> BOOL #foreign kernel32;
 
 // Returns an array of active com ports. Returned array is allocated using the
@@ -20,7 +20,7 @@ com_query :: () -> [] u32 {
     return buffer;
 }
 
-com_init :: (com_port: u8) -> handle: HANDLE = null, ok := false {
+com_init :: (com_port: u8, baud_rate: DWORD = 115200) -> handle: HANDLE = null, ok := false {
     // Open COM port
     com := CreateFileA(tprint("\\\\.\\COM%", com_port).data, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
     if com == INVALID_HANDLE_VALUE {
@@ -34,6 +34,17 @@ com_init :: (com_port: u8) -> handle: HANDLE = null, ok := false {
         log_error("Unable to get comm state: %", GetLastError());
         return;
     }
+
+    dcb.BaudRate = baud_rate;
+    dcb.packed_items = 1; // Clear packed_items, only setting fBinary to 1
+    dcb.XonChar = 0;      // hterm does the same thing...
+    dcb.XoffChar = 0;     // hterm does the same thing...
+    if !SetCommState(com, *dcb) {
+        log_error("Unable to set DCB: %", GetLastError());
+        return;
+    }
+
+    com_clear(com); // Clear input + output queue to throw away trash data
 
     return com, true;
 }
