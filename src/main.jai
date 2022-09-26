@@ -22,13 +22,19 @@ main :: () {
     if !success then return;
     if !is_set.com_port {
         log_error("You must provide the com port to flash with the -com_port argument, e.g. '-com_port 3'");
+        log("Available COM-Ports:");
+        for com_query() {
+            log("  COM-Port %", it);
+        }
         return;
     }
-    
+
+    // Open desired com port    
     com, ok := com_init(args.com_port);
     if !ok then return;
     defer com_deinit(com);
 
+    // Reset ESP
     com_rts(com, true);
     Sleep(1000);
     com_rts(com, false);

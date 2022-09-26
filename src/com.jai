@@ -6,6 +6,20 @@
 HandlerRoutine :: #type (dwCtrlType: DWORD);
 SetConsoleCtrlHandler :: (Routine: HandlerRoutine, Add: BOOL) -> BOOL #foreign kernel32;
 
+// Returns an array of active com ports. Returned array is allocated using the
+// temp allocator 
+com_query :: () -> [] u32 {
+    BUFFER_LENGTH :: 255;
+    buffer := NewArray(BUFFER_LENGTH, u32, initialized = false, allocator = temp);
+
+    active_ports: u32;
+    ok := GetCommPorts(buffer.data, BUFFER_LENGTH, *active_ports);
+    assert(ok != 0xEA); // ERROR_MORE_DATA
+
+    buffer.count = active_ports;
+    return buffer;
+}
+
 com_init :: (com_port: u8) -> handle: HANDLE = null, ok := false {
     // Open COM port
     com := CreateFileA(tprint("\\\\.\\COM%", com_port).data, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
@@ -114,11 +128,13 @@ DCB :: struct {
     wReserved1:          WORD;
 };
 
-kernel32 :: #foreign_system_library "kernel32";
+kernel32    :: #foreign_system_library "kernel32";
+kernelbase  :: #foreign_system_library "KernelBase";
 
 SetCommState :: (handle: HANDLE, dcb: *DCB) -> BOOL #foreign kernel32;
 GetCommState :: (handle: HANDLE, dcb: *DCB) -> BOOL #foreign kernel32;
 PurgeComm    :: (handle: HANDLE, flags: DWORD) -> BOOL #foreign kernel32;
+GetCommPorts :: (lpPortNumbers: *u32, uPortNumbersCount: u32, puPortNumbersFound: *u32) -> u32 #foreign kernelbase;
 
 com_get_dcb :: (com_handle: HANDLE) -> DCB, bool {
     dcb: DCB;
