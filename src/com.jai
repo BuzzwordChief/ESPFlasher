@@ -149,6 +149,7 @@ GetCommPorts :: (lpPortNumbers: *u32, uPortNumbersCount: u32, puPortNumbersFound
 
 com_get_dcb :: (com_handle: HANDLE) -> DCB, bool {
     dcb: DCB;
+    dcb.DCBlength = size_of(DCB);
     ok := GetCommState(com_handle, *dcb) != 0;
     return dcb, ok;
 }
