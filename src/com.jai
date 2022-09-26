@@ -10,7 +10,7 @@ com_init :: (com_port: u8) -> handle: HANDLE = null, ok := false {
     // Open COM port
     com := CreateFileA(tprint("\\\\.\\COM%", com_port).data, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
     if com == INVALID_HANDLE_VALUE {
-        log_error("Unable to open COM port");
+        log_error("Unable to open COM port %", com_port);
         return;
     }
 

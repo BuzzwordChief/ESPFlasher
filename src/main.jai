@@ -1,21 +1,31 @@
 #import "Basic";
 #import "Windows"; // Sleep()
+#import "Command_Line";
 
 #load "com.jai";
 
-quit := false;
+CLI_Arguments :: struct {
+    com_port: u8;
+    file: string;
+};
 
-ctrl_handler :: (type: u32) {
-    quit = true;
-}
+quit := false;
 
 main :: () {
     if !SetConsoleCtrlHandler(ctrl_handler, 1) {
-        log("Unable to set console ctrl handler. Continuing anyways...");
+        log("Unable to set console ctrl handler. Continuing anyways...", flags = .WARNING);
     }
     log("--- ESPFlasher 0.0.1 ---");
 
-    com, ok := com_init(3);
+    // Parse and validate program arguments
+    success, args, is_set := parse_arguments(CLI_Arguments);
+    if !success then return;
+    if !is_set.com_port {
+        log_error("You must provide the com port to flash with the -com_port argument, e.g. '-com_port 3'");
+        return;
+    }
+    
+    com, ok := com_init(args.com_port);
     if !ok then return;
     defer com_deinit(com);
 
@@ -33,6 +43,10 @@ main :: () {
     }
 
     log("--- Goodbye ---");
+}
+
+ctrl_handler :: (type: u32) {
+    quit = true;
 }
 
 println :: (format_string: string, args: .. Any, to_standard_error := false) -> bytes_printed: s64 { 
